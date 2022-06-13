@@ -27,6 +27,9 @@ import { LRCHandler } from "../loopring/handler";
 import Web3 from "web3";
 const PrivateKeyProvider = require("truffle-privatekey-provider");
 
+//const NacosClient = require('nacos')
+import { NacosNamingClient } from "nacos";
+
 interface LrcConf {
       adminAddress: string;
       adminPRIV: string;
@@ -34,10 +37,18 @@ interface LrcConf {
       infroUrl: string;
 }
 
+interface nacosConf {
+      serverList: string;
+      namespace: string;
+}
+
 export interface DataTransportServiceOptions {
       //host
       serverHost: string;
       serverPort: number;
+      serverIp: string;
+      serverName: string;
+      nacosConf: nacosConf;
       lrcConf: LrcConf;
 }
 
@@ -48,19 +59,23 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
 
       private lrcHandler: any;
       private flag: boolean = true;
+      private nacosClient: NacosNamingClient = null;
 
       private state: {
             app: express.Express;
             server: any;
             web3: any;
             lrcConf: LrcConf;
+            nacosConf: nacosConf;
             adminWeb3: any;
       } = {} as any;
 
       protected async _init(): Promise<void> {
             //initialize App
             this._initializeApp();
+
             this.state.lrcConf = this.options.lrcConf;
+            this.state.nacosConf = this.options.nacosConf;
             this.state.web3 = new Web3(
                   new Web3.providers.HttpProvider(this.state.lrcConf.infroUrl)
             );
@@ -77,12 +92,22 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                   this.logger
             );
             try {
+                  await this._nacos();
                   // 初始化获取参数错误处理
                   await this.lrcHandler.initAdminCount(
                         this.state.lrcConf.chainId,
                         adminWeb3
                   );
             } catch (error) {
+                  if (this.nacosClient != null) {
+                        this.nacosClient.deregisterInstance(
+                              this.options.serverName,
+                              {
+                                    ip: this.options.serverHost,
+                                    port: this.options.serverPort,
+                              }
+                        );
+                  }
                   this.logger.error("initial error", error);
                   this.flag = false;
             }
@@ -91,12 +116,12 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
       protected async _start(): Promise<void> {
             this.state.server = this.state.app.listen(
                   this.options.serverPort,
-                  this.options.serverHost
+                  this.options.serverIp
             );
 
             this.logger.info("Server started and listening", {
                   port: this.options.serverPort,
-                  host: this.options.serverHost,
+                  host: this.options.serverIp,
             });
       }
 
@@ -141,6 +166,25 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
             this.state.app.use(cors());
             this.state.app.use(json());
             this._registerAllRoutes();
+      }
+      /**
+       * registry nacos
+       *
+       */
+
+      private async _nacos() {
+            const logger = console;
+            this.nacosClient = new NacosNamingClient({
+                  logger,
+                  serverList: this.state.nacosConf.serverList,
+                  namespace: this.state.nacosConf.namespace,
+            });
+            await this.nacosClient.ready();
+
+            await this.nacosClient.registerInstance(this.options.serverName, {
+                  ip: this.options.serverHost,
+                  port: this.options.serverPort,
+            });
       }
 
       /**

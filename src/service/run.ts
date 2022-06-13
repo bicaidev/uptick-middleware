@@ -43,7 +43,12 @@ interface Bcfg {
       const service = new DataTransportService({
             serverHost: config.str("serverHost", ""),
             serverPort: config.uint("serverPort", 8901),
-
+            serverIp: config.str("serverIp", ""),
+            serverName: config.str("serverName", ""),
+            nacosConf: {
+                  serverList: config.str("serverList", ""),
+                  namespace: config.str("namespace", ""),
+            },
             lrcConf: {
                   adminAddress: config.str("adminAddress", ""),
                   adminPRIV: config.str("adminPRIV", ""),
