@@ -57,6 +57,10 @@ export const ERR_MSG = {
             NO: -4006,
             MSG: "NFT holder error",
       },
+      NFT_INFO: {
+            NO: -4007,
+            MSG: "NFT info error",
+      },
       BLOCK_INFO: {
             NO: -5005,
             MSG: "BLOCK  error",

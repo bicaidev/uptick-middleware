@@ -20,7 +20,7 @@ import Config from "bcfg";
 
 /* Imports: Internal */
 import { DataTransportService } from "./main/service";
-import browserEnv from "browser-env";
+// import browserEnv from "browser-env";
 import * as sdk from "@loopring-web/loopring-sdk";
 
 interface Bcfg {
@@ -31,7 +31,7 @@ interface Bcfg {
 }
 
 (async () => {
-      browserEnv(["navigator"]);
+      //browserEnv(["navigator"]);
 
       dotenv.config();
       const config: Bcfg = new Config("bicai");

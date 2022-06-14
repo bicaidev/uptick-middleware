@@ -29,6 +29,7 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 
 //const NacosClient = require('nacos')
 import { NacosNamingClient } from "nacos";
+import { solidityKeccak256 } from "ethers/lib/utils";
 
 interface LrcConf {
       adminAddress: string;
@@ -84,6 +85,7 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                   this.state.lrcConf.adminPRIV,
                   this.state.lrcConf.infroUrl
             );
+
             const adminWeb3 = new Web3(provider);
             this.state.adminWeb3 = adminWeb3;
 
@@ -92,7 +94,7 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                   this.logger
             );
             try {
-                  await this._nacos();
+                  //await this._nacos();
                   // 初始化获取参数错误处理
                   await this.lrcHandler.initAdminCount(
                         this.state.lrcConf.chainId,
@@ -108,6 +110,7 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                               }
                         );
                   }
+
                   this.logger.error("initial error", error);
                   this.flag = false;
             }
@@ -150,8 +153,10 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
             await super.init();
             if (this.flag != true) {
                   this.logger.info("service initial failed...");
-                  return;
+                  process.exit(1);
+                  //return;
             }
+
             await this._start();
             this.logger.info("Service has started");
       }
@@ -790,48 +795,67 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                         }
                   }
             ),
-                  /**
-                   * @description post     query nft holders by looprings nftData
-                   * @param nftData        the Loopring's NFT token data identifier which is a hash string of NFT token address and NFT_ID
-                   * @param offset         number of records to skip
-                   * @param limit          number of records to return
-                   */
                   this._registerRoute(
                         "post",
-                        "/lrc/getNftHolders",
+                        "/lrc/getNftInfo",
                         async (req): Promise<any> => {
-                              console.log("lrc/getNftHolders ");
                               let params = req.body;
 
                               try {
-                                    let offset = params.hasOwnProperty("offset")
-                                          ? params.offset
-                                          : 0;
-                                    let limit = params.hasOwnProperty("limit")
-                                          ? params.limit
-                                          : 100;
-
-                                    let quiry = {
-                                          offset,
-                                          limit,
-                                          ...params,
-                                    };
-
                                     let response =
-                                          await this.lrcHandler.getNftHolders(
-                                                quiry
+                                          await this.lrcHandler.getNftInfo(
+                                                params
                                           );
-
                                     return okResphonse(response);
                               } catch (reason) {
                                     this.logger.error(reason);
                                     return errResphonse(
-                                          ERR_MSG.NFT_HOLDER.NO,
-                                          ERR_MSG.NFT_HOLDER.MSG
+                                          ERR_MSG.NFT_INFO.NO,
+                                          ERR_MSG.NFT_INFO.MSG
                                     );
                               }
                         }
-                  ),
+                  );
+            /**
+             * @description post     query nft holders by looprings nftData
+             * @param nftData        the Loopring's NFT token data identifier which is a hash string of NFT token address and NFT_ID
+             * @param offset         number of records to skip
+             * @param limit          number of records to return
+             */
+            this._registerRoute(
+                  "post",
+                  "/lrc/getNftHolders",
+                  async (req): Promise<any> => {
+                        console.log("lrc/getNftHolders ");
+                        let params = req.body;
+
+                        try {
+                              let offset = params.hasOwnProperty("offset")
+                                    ? params.offset
+                                    : 0;
+                              let limit = params.hasOwnProperty("limit")
+                                    ? params.limit
+                                    : 100;
+
+                              let quiry = {
+                                    offset,
+                                    limit,
+                                    ...params,
+                              };
+
+                              let response =
+                                    await this.lrcHandler.getNftHolders(quiry);
+
+                              return okResphonse(response);
+                        } catch (reason) {
+                              this.logger.error(reason);
+                              return errResphonse(
+                                    ERR_MSG.NFT_HOLDER.NO,
+                                    ERR_MSG.NFT_HOLDER.MSG
+                              );
+                        }
+                  }
+            ),
                   /**
                    * @description post      get account detail information
                    * @param accountId       accountID, if owner is presented, it must be align with the owners accountId, otherwise an error occurs.

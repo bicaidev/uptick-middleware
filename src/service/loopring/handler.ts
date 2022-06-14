@@ -1180,10 +1180,26 @@ export class LRCHandler {
                   this.logger.info("tradelist");
                   return result;
             } catch (reason) {
-                  this.logger.error(reason);
+                  throw reason;
             }
       }
 
+      /**
+       * Query NFT info by looprings nftData
+       * @param params
+       * @returns
+       */
+
+      public async getNftInfo(params: any): Promise<any> {
+            try {
+                  const result = await LoopringAPI.nftAPI.getInfoForNFTTokens({
+                        nftDatas: params.nftDatas,
+                  });
+                  return result;
+            } catch (error) {
+                  throw error;
+            }
+      }
       /**
        * @description  getBlock
        * @param params       adddress for quiry
