@@ -25,7 +25,9 @@ import { errResphonse, okResphonse, ERR_MSG } from "../../utils";
 import { LRCHandler } from "../loopring/handler";
 
 import Web3 from "web3";
-const PrivateKeyProvider = require("truffle-privatekey-provider");
+// const PrivateKeyProvider = require("truffle-privatekey-provider");
+
+const HDWalletProvider = require("@truffle/hdwallet-provider");
 
 //const NacosClient = require('nacos')
 import { NacosNamingClient } from "nacos";
@@ -79,13 +81,12 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
             this.state.lrcConf = this.options.lrcConf;
             this.state.nacosConf = this.options.nacosConf;
             try {
-                  this.state.web3 = new Web3(
-                        new Web3.providers.HttpProvider(
-                              this.state.lrcConf.infroUrl
-                        )
+                  let web3Provider = new Web3.providers.WebsocketProvider(
+                        this.state.lrcConf.infroUrl
                   );
+                  this.state.web3 = new Web3(web3Provider);
 
-                  const provider = new PrivateKeyProvider(
+                  const provider = new HDWalletProvider(
                         this.state.lrcConf.adminPRIV,
                         this.state.lrcConf.infroUrl
                   );
@@ -98,7 +99,7 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                         this.logger
                   );
 
-                  //await this._nacos();
+                  await this._nacos();
                   await this.lrcHandler.initAdminCount(
                         this.state.lrcConf.chainId,
                         adminWeb3
