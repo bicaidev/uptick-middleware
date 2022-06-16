@@ -61,6 +61,22 @@ export const ERR_MSG = {
             NO: -4007,
             MSG: "NFT info error",
       },
+      NFT_ORDER_FEE: {
+            NO: -4008,
+            MSG: "NFT order fee error",
+      },
+      NFT_FEE: {
+            NO: -4009,
+            MSG: "NFT fee error",
+      },
+      NFT_TRADE_VALIDATE: {
+            NO: -4010,
+            MSG: "NFT  validate trade error",
+      },
+      NFT_EXCHANE_ADDRESS: {
+            NO: -4011,
+            MSG: "NFT  exchange  exchangeAddress error",
+      },
       BLOCK_INFO: {
             NO: -5005,
             MSG: "BLOCK  error",
@@ -68,6 +84,10 @@ export const ERR_MSG = {
       USER_ACCOUNT: {
             NO: -6001,
             MSG: "user account  error",
+      },
+      USER_FEE: {
+            NO: -6002,
+            MSG: "user opration fee error",
       },
 };
 

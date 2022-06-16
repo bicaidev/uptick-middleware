@@ -676,6 +676,7 @@ export class LRCHandler {
             // 1. getAccount
             const accInfo = await this.getAccount(address);
 
+            this.logger.info("accountInfo");
             // 2. exchange Info
             const exchangeInfo = await this.getExchangeInfo();
             let exchangeAddress = exchangeInfo.exchangeAddress;
@@ -694,11 +695,15 @@ export class LRCHandler {
                   eddsaKey.sk
             );
 
+            this.logger.info("apiKey");
+
             // 5. storageId
             const storageId = await LoopringAPI.userAPI.getNextStorageId(
                   { accountId: accInfo.accountId, sellTokenId: 1 },
                   apiKey
             );
+
+            this.logger.info("storageId");
 
             // 6. fee
             const fee = await LoopringAPI.userAPI.getNFTOffchainFeeAmt(
@@ -709,6 +714,7 @@ export class LRCHandler {
                   },
                   apiKey
             );
+            this.logger.info("fee");
 
             //7.nftTokenAddress
             const counterFactualNftInfo = {
@@ -1021,6 +1027,7 @@ export class LRCHandler {
                   return { order, orderEddsaSignature };
             } catch (reason) {
                   console.log(reason);
+                  throw reason;
             }
       }
 
@@ -1088,6 +1095,7 @@ export class LRCHandler {
                   return res.data;
             } catch (reason) {
                   this.logger.error(reason);
+                  throw reason;
             }
       }
 
@@ -1136,7 +1144,8 @@ export class LRCHandler {
 
                   return response;
             } catch (reason) {
-                  this.logger.error("tradeNFT error", reason);
+                  //this.logger.error("tradeNFT error", reason);
+                  throw reason;
             }
       }
 
@@ -1162,12 +1171,12 @@ export class LRCHandler {
             }
       }
       /**
-       * @description nft tradesList
+       * @description user tradesList
        * @param params
        * @returns {Promise.<*>}
        */
 
-      public async getTradesList(params: any): Promise<any> {
+      public async getUserTradesList(params: any): Promise<any> {
             try {
                   const result = await LoopringAPI.userAPI.getUserTrades(
                         {
@@ -1272,6 +1281,148 @@ export class LRCHandler {
                   return res.data;
             } catch (reason) {
                   console.log(reason);
+            }
+      }
+
+      /**
+       * @description get user opration fee
+       * @param params     quiry params
+       * @returns {Promise.<*>}
+       */
+
+      public async getUserFee(params: any): Promise<any> {
+            try {
+                  const result = await LoopringAPI.userAPI.getOffchainFeeAmt(
+                        {
+                              accountId: params.accountId,
+                              requestType: params.requestType,
+                        },
+                        this.adminApiKey
+                  );
+                  return result;
+            } catch (error) {
+                  throw error;
+            }
+      }
+
+      /**
+       * @description get nft place order fee
+       * @param params     quiry params
+       * @returns {Promise.<*>}
+       */
+
+      public async getNftOrderFee(params: any): Promise<any> {
+            try {
+                  let url = baseRprUrl + "api/v3/user/nft/orderFee";
+
+                  let res = await axios({
+                        method: "get", //you can set what request you want to be
+                        url: url,
+                        params: params,
+                        headers: {
+                              "X-API-KEY": this.adminApiKey,
+                        },
+                  });
+
+                  return res.data;
+            } catch (error) {
+                  throw error;
+            }
+      }
+
+      /**
+       * @description get nft place order fee
+       * @param params     quiry params
+       * @returns {Promise.<*>}
+       */
+
+      public async getNftFee(params: any): Promise<any> {
+            try {
+                  const result = await LoopringAPI.userAPI.getNFTOffchainFeeAmt(
+                        {
+                              accountId: params.accountId,
+                              requestType: params.requestType,
+                              tokenAddress: params.tokenAddress,
+                        },
+                        this.adminApiKey
+                  );
+                  return result;
+            } catch (error) {
+                  throw error;
+            }
+      }
+
+      /**
+       * @description get nft transactions
+       * @param params     quiry params
+       * @returns {Promise.<*>}
+       */
+
+      public async getNftTransactions(params: any): Promise<any> {
+            try {
+                  const result =
+                        await LoopringAPI.userAPI.getUserNFTTransactionHistory(
+                              {
+                                    ...params,
+                              },
+                              this.adminApiKey
+                        );
+                  return result;
+            } catch (error) {
+                  throw error;
+            }
+      }
+
+      /**
+       * @description get nft trade history
+       * @param params     quiry params
+       * @returns {Promise.<*>}
+       */
+
+      public async getNftTrade(params: any): Promise<any> {
+            try {
+                  let url = baseRprUrl + "api/v3/user/nft/trades";
+
+                  let res = await axios({
+                        method: "get", //you can set what request you want to be
+                        url: url,
+                        params: params,
+                        headers: {
+                              "X-API-KEY": this.adminApiKey,
+                        },
+                  });
+
+                  return res.data;
+            } catch (error) {
+                  throw error;
+            }
+      }
+
+      /**
+       * @description validate a NFT order
+       * @param params   quiry params
+       * @returns {Promise.<*>}
+       */
+
+      public async validateNftOrder(
+            params: any,
+            chainId: number
+      ): Promise<any> {
+            try {
+                  const result =
+                        await LoopringAPI.userAPI.submitNFTValidateOrder({
+                              request: {
+                                    ...params,
+                              },
+                              web3: this.adminWeb3,
+                              chainId,
+                              walletType: sdk.ConnectorNames.Unknown,
+                              apiKey: this.adminApiKey,
+                              eddsaKey: this.adminEddsaKey.sk,
+                        });
+                  return result;
+            } catch (error) {
+                  throw error;
             }
       }
 }

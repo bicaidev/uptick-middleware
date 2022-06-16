@@ -30,6 +30,7 @@ const PrivateKeyProvider = require("truffle-privatekey-provider");
 //const NacosClient = require('nacos')
 import { NacosNamingClient } from "nacos";
 import { solidityKeccak256 } from "ethers/lib/utils";
+import { isBlock } from "typescript";
 
 interface LrcConf {
       adminAddress: string;
@@ -77,25 +78,27 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
 
             this.state.lrcConf = this.options.lrcConf;
             this.state.nacosConf = this.options.nacosConf;
-            this.state.web3 = new Web3(
-                  new Web3.providers.HttpProvider(this.state.lrcConf.infroUrl)
-            );
-
-            const provider = new PrivateKeyProvider(
-                  this.state.lrcConf.adminPRIV,
-                  this.state.lrcConf.infroUrl
-            );
-
-            const adminWeb3 = new Web3(provider);
-            this.state.adminWeb3 = adminWeb3;
-
-            this.lrcHandler = new LRCHandler(
-                  this.state.lrcConf.chainId,
-                  this.logger
-            );
             try {
+                  this.state.web3 = new Web3(
+                        new Web3.providers.HttpProvider(
+                              this.state.lrcConf.infroUrl
+                        )
+                  );
+
+                  const provider = new PrivateKeyProvider(
+                        this.state.lrcConf.adminPRIV,
+                        this.state.lrcConf.infroUrl
+                  );
+
+                  const adminWeb3 = new Web3(provider);
+                  this.state.adminWeb3 = adminWeb3;
+
+                  this.lrcHandler = new LRCHandler(
+                        this.state.lrcConf.chainId,
+                        this.logger
+                  );
+
                   //await this._nacos();
-                  // 初始化获取参数错误处理
                   await this.lrcHandler.initAdminCount(
                         this.state.lrcConf.chainId,
                         adminWeb3
@@ -734,13 +737,14 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                   }
             );
 
+            //
             /**
              * @description  get users nft trade list
              * @param nftId  nftId for the nftInfo
              */
             this._registerRoute(
                   "post",
-                  "/lrc/getTradesList",
+                  "/lrc/getUserTradesList",
                   async (req): Promise<any> => {
                         let params = req.body;
 
@@ -759,7 +763,9 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                         try {
                               // 补充方法
                               let response =
-                                    await this.lrcHandler.getTradesList(quiry);
+                                    await this.lrcHandler.getUserTradesList(
+                                          quiry
+                                    );
                               return okResphonse(response);
                         } catch (reason) {
                               this.logger.error(reason);
@@ -795,6 +801,10 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                         }
                   }
             ),
+                  /**
+                   * @description  get nft info by nftdatas, maxsize in 50
+                   * @param ntfdatas  array of nftdata
+                   */
                   this._registerRoute(
                         "post",
                         "/lrc/getNftInfo",
@@ -886,5 +896,203 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                               }
                         }
                   );
+
+            /**
+             * @description query  user operation fee
+             * @param accountId
+             * @param requestType ['0:ORDER', '1:OFFCHAIN_WITHDRAWAL', '2:UPDATE_ACCOUNT', '3:TRANSFER', '4:FAST_OFFCHAIN_WITHDRAWAL', '5:OPEN_ACCOUNT', '6:AMM_EXIT', '7:DEPOSIT', '8:AMM_JOIN', '15:TRANSFER_AND_UPDATE_ACCOUNT']
+             */
+
+            this._registerRoute(
+                  "post",
+                  "/lrc/getUserFee",
+                  async (req): Promise<any> => {
+                        let params = req.body;
+
+                        try {
+                              let response = await this.lrcHandler.getUserFee(
+                                    params
+                              );
+
+                              return okResphonse(response);
+                        } catch (reason) {
+                              this.logger.error(reason);
+                              return errResphonse(
+                                    ERR_MSG.USER_FEE.NO,
+                                    ERR_MSG.USER_FEE.MSG
+                              );
+                        }
+                  }
+            );
+
+            /**
+             * @description get fee rate of users placing orders
+             * @param accountId
+             * @param nftTokenAddress NFT token address of order
+             * @param quoteToken
+             * @param quoteAmount
+             */
+            this._registerRoute(
+                  "post",
+                  "/lrc/nftOrderFee",
+                  async (req): Promise<any> => {
+                        try {
+                              let params = req.body;
+                              let response =
+                                    await this.lrcHandler.getNftOrderFee(
+                                          params
+                                    );
+
+                              return okResphonse(response);
+                        } catch (reason) {
+                              this.logger.error(reason);
+                              return errResphonse(
+                                    ERR_MSG.NFT_ORDER_FEE.NO,
+                                    ERR_MSG.NFT_ORDER_FEE.MSG
+                              );
+                        }
+                  }
+            );
+
+            /**
+             * @description get fee rate of users placing orders
+             * @param accountId
+             * @param requestType ['9:NFT_MINT', '10:NFT_WITHDRAWAL', '11:NFT_TRANSFER', '13:DEPLOY_TOKENADDRESS', '19:NFT_TRANSFER_AND_UPDATE_ACCOUNT']
+             * @tokenAddress need address if NFT_MINT and  NFT_WITHDRAWAL
+             *
+             */
+            this._registerRoute(
+                  "post",
+                  "/lrc/nftFee",
+                  async (req): Promise<any> => {
+                        try {
+                              let params = req.body;
+                              let response = await this.lrcHandler.getNftFee(
+                                    params
+                              );
+
+                              return okResphonse(response);
+                        } catch (reason) {
+                              this.logger.error(reason);
+                              return errResphonse(
+                                    ERR_MSG.NFT_FEE.NO,
+                                    ERR_MSG.NFT_FEE.MSG
+                              );
+                        }
+                  }
+            );
+
+            /**
+             * @description get fee rate of users placing orders
+             * @param accountId
+             * @types Optional default is "mint,deposit,transfer,deploy,onchain_withdrawal,offchain_withdrawal", you  can use one or more of them
+             * @offset Optional Offset number
+             * @limit  default 50
+             * @nftdata optional nft datas, separate by ","
+             */
+            this._registerRoute(
+                  "post",
+                  "/lrc/nftTransactions",
+                  async (req): Promise<any> => {
+                        try {
+                              let params = req.body;
+                              let response =
+                                    await this.lrcHandler.getNftTransactions(
+                                          params
+                                    );
+
+                              return okResphonse(response);
+                        } catch (reason) {
+                              this.logger.error(reason);
+                              return errResphonse(
+                                    ERR_MSG.NFT_TRANSFER.NO,
+                                    ERR_MSG.NFT_TRANSFER.MSG
+                              );
+                        }
+                  }
+            );
+
+            /**
+             * @description get nft trade history
+             * @param accountId
+             * @param orderHash Optional  NFT order hash
+             * @nftdata optional the nftData of the NFT token
+             * @limit Optional Number of records to return
+             */
+            this._registerRoute(
+                  "post",
+                  "/lrc/nftTrades",
+                  async (req): Promise<any> => {
+                        try {
+                              let params = req.body;
+                              let response = await this.lrcHandler.getNftTrade(
+                                    params
+                              );
+
+                              return okResphonse(response);
+                        } catch (reason) {
+                              this.logger.error(reason);
+                              return errResphonse(
+                                    ERR_MSG.NFT_TRADE.NO,
+                                    ERR_MSG.NFT_TRADE.MSG
+                              );
+                        }
+                  }
+            );
+
+            /**
+             * @description get exchange info
+             *
+             */
+            this._registerRoute(
+                  "post",
+                  "/lrc/exchangeAddress",
+                  async (req): Promise<any> => {
+                        try {
+                              const exchangeInfo =
+                                    await this.lrcHandler.getExchangeInfo();
+                              return okResphonse(exchangeInfo);
+                        } catch (error) {
+                              this.logger.error(error);
+                              return errResphonse(
+                                    ERR_MSG.NFT_EXCHANE_ADDRESS.NO,
+                                    ERR_MSG.NFT_EXCHANE_ADDRESS.MSG
+                              );
+                        }
+                  }
+            );
+
+            /**
+             * @description validate a NFT order
+             * @param exchange
+             * @param accountId
+             * @param storageId
+             * @param sellToken
+             * @param buyToken
+             * @param validUntil
+             * @param maxFeeBips
+             */
+            this._registerRoute(
+                  "post",
+                  "/lrc/nftVaidateTrade",
+                  async (req): Promise<any> => {
+                        try {
+                              let params = req.body;
+                              let response =
+                                    await this.lrcHandler.validateNFTOrder(
+                                          params,
+                                          this.state.lrcConf.chainId
+                                    );
+
+                              return okResphonse(response);
+                        } catch (reason) {
+                              this.logger.error(reason);
+                              return errResphonse(
+                                    ERR_MSG.NFT_TRADE_VALIDATE.NO,
+                                    ERR_MSG.NFT_TRADE_VALIDATE.MSG
+                              );
+                        }
+                  }
+            );
       }
 }
