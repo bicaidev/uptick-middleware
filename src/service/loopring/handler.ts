@@ -110,12 +110,12 @@ export class LRCHandler {
 
                   return keySeed;
             } catch (reason) {
-                  console.log(reason);
+                  throw reason;
             }
       }
 
       /**
-       * @description             getAccount
+       * @description             getAccount    api docs
        * @param address           address from account info
        * @returns                 {Promise<AccountInfo>}
        */
@@ -130,12 +130,12 @@ export class LRCHandler {
                   }
                   return accInfo;
             } catch (reason) {
-                  console.log(reason);
+                  throw reason;
             }
       }
 
       /**
-       * @description             getExchangeInfo
+       * @description             getExchangeInfo  api docs
        * @returns                 {Promise<ExchangeInfo>}
        */
       public async getExchangeInfo(): Promise<ExchangeInfo> {
@@ -144,7 +144,7 @@ export class LRCHandler {
                         await LoopringAPI.exchangeAPI.getExchangeInfo();
                   return exchangeInfo;
             } catch (reason) {
-                  console.log(reason);
+                  throw reason;
             }
       }
 
@@ -172,7 +172,7 @@ export class LRCHandler {
       ): Promise<any> {
             try {
                   // LoopringAPI.nftAPI.depositNFT();
-
+                  // todo
                   return await getDeposit(
                         from,
                         exchangeAddress,
@@ -185,7 +185,7 @@ export class LRCHandler {
                         nonce
                   );
             } catch (reason) {
-                  console.log(reason);
+                  throw reason;
             }
       }
 
@@ -233,7 +233,6 @@ export class LRCHandler {
                   );
                   return msg;
             } catch (reason) {
-                  console.log(reason);
                   return reason;
             }
       }
@@ -314,7 +313,7 @@ export class LRCHandler {
       }
 
       /**
-       * @description getAccountDetail
+       * @description getAccountDetail   api docs
        * @param fromAddress       update account address
        * @param keyPairSignature  keyPair signation
        * @param chainId           chainId for env
@@ -403,7 +402,7 @@ export class LRCHandler {
                         tokenAddress,
                   };
             } catch (reason) {
-                  this.logger.error("error", reason);
+                  throw reason;
             }
       }
 
@@ -526,7 +525,7 @@ export class LRCHandler {
                   );
                   return resultTx;
             } catch (reason) {
-                  console.log(reason);
+                  throw reason;
             }
       }
 
@@ -588,7 +587,7 @@ export class LRCHandler {
 
                   return response;
             } catch (reason) {
-                  console.log(reason);
+                  throw reason;
             }
       }
 
@@ -660,7 +659,7 @@ export class LRCHandler {
                   console.log("transfer Result:", transferResult);
                   return transferResult;
             } catch (reason) {
-                  console.log(reason);
+                  throw reason;
             }
       }
 
@@ -705,7 +704,7 @@ export class LRCHandler {
 
             this.logger.info("storageId");
 
-            // 6. fee
+            // 6. fee  todo 合理的fee ?
             const fee = await LoopringAPI.userAPI.getNFTOffchainFeeAmt(
                   {
                         accountId: accInfo.accountId,
@@ -766,7 +765,7 @@ export class LRCHandler {
       }
 
       /**
-       * @description  getNftBalances
+       * @description  getNftBalances   api docs
        * @param address       adddress for quiry
        * @param quiry         quiry datqa
        * @returns {Promise.<*>}
@@ -792,7 +791,7 @@ export class LRCHandler {
 
                   return res.data;
             } catch (reason) {
-                  console.log(reason);
+                  throw reason;
             }
       }
 
@@ -832,7 +831,7 @@ export class LRCHandler {
                   );
                   return msg;
             } catch (reason) {
-                  console.log(reason);
+                  throw reason;
             }
       }
 
@@ -887,7 +886,7 @@ export class LRCHandler {
                   };
                   return request;
             } catch (reason) {
-                  console.log(reason);
+                  throw reason;
             }
       }
 
@@ -1026,13 +1025,12 @@ export class LRCHandler {
 
                   return { order, orderEddsaSignature };
             } catch (reason) {
-                  console.log(reason);
                   throw reason;
             }
       }
 
       /**
-       * @description  getNftDetailFromNftId
+       * @description  getNftDetailFromNftId  api docs
        * @param fromAddress    from address of nft
        * @param nftId          nftId to send
        * @returns {Promise.<*>}
@@ -1063,12 +1061,12 @@ export class LRCHandler {
 
                   return { nftData, nftTokenId };
             } catch (reason) {
-                  this.logger.error(reason);
+                  throw reason;
             }
       }
 
       /**
-       * @description          getNftDataFromNftId
+       * @description          getNftDataFromNftId   api docs
        * @param minter         minter address of nft
        * @param tokenAddress   nftType 0:1155 1:721
        * @param nftId          nftId to send
@@ -1094,13 +1092,12 @@ export class LRCHandler {
                   });
                   return res.data;
             } catch (reason) {
-                  this.logger.error(reason);
                   throw reason;
             }
       }
 
       /**
-       * @description                           tradeNFT
+       * @description                           tradeNFT   api docs
        * @param makerOrder                      maker Order for trade
        * @param makerOrderEddsaSignature        maker Order EddsaSignature for trade
        * @param takerOrder                      the maker feeBips, should <= maxFeeBips in makers order
@@ -1167,11 +1164,11 @@ export class LRCHandler {
                   this.logger.info("getContractNFTMeta ", result);
                   return result;
             } catch (reason) {
-                  this.logger.error(reason);
+                  throw reason;
             }
       }
       /**
-       * @description user tradesList
+       * @description user tradesList  not used
        * @param params
        * @returns {Promise.<*>}
        */
@@ -1186,7 +1183,7 @@ export class LRCHandler {
                         },
                         this.adminApiKey
                   );
-                  this.logger.info("tradelist");
+
                   return result;
             } catch (reason) {
                   throw reason;
@@ -1194,7 +1191,7 @@ export class LRCHandler {
       }
 
       /**
-       * Query NFT info by looprings nftData
+       * Query NFT info by looprings nftData   api docs
        * @param params
        * @returns
        */
@@ -1232,12 +1229,12 @@ export class LRCHandler {
 
                   return res.data;
             } catch (reason) {
-                  console.log(reason);
+                  throw reason;
             }
       }
 
       /**
-       * @description  getNftBalances
+       * @description  getNftBalances   api docs
        * @param quiry         quiry datqa
        * @returns {Promise.<*>}
        */
@@ -1256,12 +1253,12 @@ export class LRCHandler {
 
                   return res.data;
             } catch (reason) {
-                  console.log(reason);
+                  throw reason;
             }
       }
 
       /**
-       * @description  getNftBalances
+       * @description  getNftBalances  api docs
        * @param quiry         quiry datqa
        * @returns {Promise.<*>}
        */
@@ -1280,7 +1277,7 @@ export class LRCHandler {
 
                   return res.data;
             } catch (reason) {
-                  console.log(reason);
+                  throw reason;
             }
       }
 
@@ -1353,7 +1350,7 @@ export class LRCHandler {
       }
 
       /**
-       * @description get nft transactions
+       * @description get nft transactions  api docs
        * @param params     quiry params
        * @returns {Promise.<*>}
        */
@@ -1374,7 +1371,7 @@ export class LRCHandler {
       }
 
       /**
-       * @description get nft trade history
+       * @description get nft trade history  api docs
        * @param params     quiry params
        * @returns {Promise.<*>}
        */
@@ -1399,7 +1396,7 @@ export class LRCHandler {
       }
 
       /**
-       * @description validate a NFT order
+       * @description validate a NFT order  api docs
        * @param params   quiry params
        * @returns {Promise.<*>}
        */

@@ -18,21 +18,17 @@
 import { BaseService } from "@eth-optimism/service-base";
 import express, { json, Request, Response } from "express";
 import cors from "cors";
-import pino, { Logger as PinoLogger } from "pino";
+import pino from "pino";
 import { Logger } from "@eth-optimism/core-utils";
 
 import { errResphonse, okResphonse, ERR_MSG } from "../../utils";
 import { LRCHandler } from "../loopring/handler";
 
 import Web3 from "web3";
-// const PrivateKeyProvider = require("truffle-privatekey-provider");
 
 const HDWalletProvider = require("@truffle/hdwallet-provider");
 
-//const NacosClient = require('nacos')
 import { NacosNamingClient } from "nacos";
-import { solidityKeccak256 } from "ethers/lib/utils";
-import { isBlock } from "typescript";
 
 interface LrcConf {
       adminAddress: string;
@@ -146,11 +142,25 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
 
             if (this.logger === undefined) {
                   this.logger = new Logger({ name: this.name });
-                  this.logger.inner = new pino({
-                        name: this.name,
-                        timestamp: isoTime,
-                        prettyPrint: true,
-                  });
+                  // this.logger.inner = new pino(
+                  //       {
+                  //             //timestamp: isoTime,
+                  //             prettyPrint: {
+                  //                   levelFirst: true,
+                  //                   colorize: true,
+                  //                   translateTime: "yyyy-dd-mm, h:MM:ss TT",
+                  //             },
+                  //       },
+                  //       pino.destination("../server.log")
+                  // );
+                  this.logger.inner = new pino(
+                        {
+                              name: this.name,
+                              prettyPrint: true,
+                              timestamp: isoTime,
+                        },
+                        "./server.log"
+                  );
             }
             this.running = true;
             this.logger.info("Service is starting...");
@@ -444,6 +454,7 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                    * @param offset         number of records to skip
                    * @param limit          number of records to return
                    */
+                  // 改造 查询单个 todo
                   this._registerRoute(
                         "post",
                         "/lrc/getNftBalances",
@@ -804,7 +815,7 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
             ),
                   /**
                    * @description  get nft info by nftdatas, maxsize in 50
-                   * @param ntfdatas  array of nftdata
+                   * @param ntfdatas  array of nftdata  using ["xxx", "xxx"]
                    */
                   this._registerRoute(
                         "post",
