@@ -142,14 +142,11 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
 
             if (this.logger === undefined) {
                   this.logger = new Logger({ name: this.name });
-                  this.logger.inner = new pino(
-                        {
-                              name: this.name,
-                              prettyPrint: true,
-                              timestamp: isoTime,
-                        },
-                        "./server.log"
-                  );
+                  this.logger.inner = new pino({
+                        name: this.name,
+                        prettyPrint: true,
+                        timestamp: isoTime,
+                  });
             }
             this.running = true;
             this.logger.info("Service is starting...");
