@@ -142,17 +142,6 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
 
             if (this.logger === undefined) {
                   this.logger = new Logger({ name: this.name });
-                  // this.logger.inner = new pino(
-                  //       {
-                  //             //timestamp: isoTime,
-                  //             prettyPrint: {
-                  //                   levelFirst: true,
-                  //                   colorize: true,
-                  //                   translateTime: "yyyy-dd-mm, h:MM:ss TT",
-                  //             },
-                  //       },
-                  //       pino.destination("../server.log")
-                  // );
                   this.logger.inner = new pino(
                         {
                               name: this.name,
@@ -459,7 +448,6 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                         "post",
                         "/lrc/getNftBalances",
                         async (req): Promise<any> => {
-                              this.logger.info("lrc/getNftBalances 1");
                               let params = req.body;
                               let fromAddress = params.fromAddress;
 
@@ -751,7 +739,7 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
 
             //
             /**
-             * @description  get users nft trade list
+             * @description  get users token trade list (not nft)
              * @param nftId  nftId for the nftInfo
              */
             this._registerRoute(
@@ -995,7 +983,7 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
             );
 
             /**
-             * @description get fee rate of users placing orders
+             * @description nft transaction history
              * @param accountId
              * @types Optional default is "mint,deposit,transfer,deploy,onchain_withdrawal,offchain_withdrawal", you  can use one or more of them
              * @offset Optional Offset number
