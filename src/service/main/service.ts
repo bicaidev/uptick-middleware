@@ -236,47 +236,22 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
        */
       private _registerAllRoutes(): void {
             /**
-             * @description             get the deposit raw transaction
-             * @param from              from address to deposit
-             * @param value             depoist value unit ETH
-             * @param fee               deposit fee unit Wei
-             * @param gasPrice          gasPrice unit GWei
-             * @param gasLimit          gasLimit for evm contract run
-             * @param nonce             account nonce
-             **/
+             * @description             get key pair message from address
+             * @param fromAddress       address to get message
+             */
             this._registerRoute(
                   "post",
-                  "/lrc/packDepositTx",
+                  "/lrc/getKeyPairMsg",
                   async (req): Promise<any> => {
                         let params = req.body;
-                        let fromAddress = params.fromAddress;
-                        let value = params.value;
-                        let fee = params.fee;
-                        let gasPrice = params.gasPrice;
-                        let gasLimit = params.gasLimit;
-                        let nonce = params.nonce;
-
+                        let address = params.address;
                         try {
-                              //1.0 get exchange Info
-                              console.log("****1. get exchange Info");
-                              const exchangeInfo =
-                                    await this.lrcHandler.getExchangeInfo();
-
-                              //2.0 get get DepositTx
-                              console.log("****2. get DepositTx");
-                              let tx = await this.lrcHandler.getDeposit(
-                                    fromAddress,
-                                    exchangeInfo.exchangeAddress,
-                                    value,
-                                    fee,
-                                    gasPrice,
-                                    gasLimit,
-                                    this.state.lrcConf.chainId,
-                                    nonce
-                              );
-                              return okResphonse(tx);
+                              const keySeed =
+                                    await this.lrcHandler.getKeyPairMsg(
+                                          address
+                                    );
+                              return okResphonse(keySeed);
                         } catch (reason) {
-                              console.log(reason);
                               return errResphonse(
                                     ERR_MSG.MINT_ERROR.NO,
                                     ERR_MSG.MINT_ERROR.MSG
@@ -284,55 +259,6 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                         }
                   }
             ),
-                  /**
-                   * @description             broadcast the deposit transaction signed by client private key
-                   * @param signTx            signed transaction to broadcast
-                   */
-                  this._registerRoute(
-                        "post",
-                        "/lrc/broadcastTx",
-                        async (req): Promise<any> => {
-                              try {
-                                    const params = req.body;
-                                    let tx =
-                                          await this.state.web3.eth.sendSignedTransaction(
-                                                params.signTx.rawTransaction
-                                          );
-
-                                    return okResphonse(tx.transactionHash);
-                              } catch (reason) {
-                                    console.log(reason);
-                                    return errResphonse(
-                                          ERR_MSG.MINT_ERROR.NO,
-                                          ERR_MSG.MINT_ERROR.MSG
-                                    );
-                              }
-                        }
-                  ),
-                  /**
-                   * @description             get key pair message from address
-                   * @param fromAddress       address to get message
-                   */
-                  this._registerRoute(
-                        "post",
-                        "/lrc/getKeyPairMsg",
-                        async (req): Promise<any> => {
-                              let params = req.body;
-                              let address = params.address;
-                              try {
-                                    const keySeed =
-                                          await this.lrcHandler.getKeyPairMsg(
-                                                address
-                                          );
-                                    return okResphonse(keySeed);
-                              } catch (reason) {
-                                    return errResphonse(
-                                          ERR_MSG.MINT_ERROR.NO,
-                                          ERR_MSG.MINT_ERROR.MSG
-                                    );
-                              }
-                        }
-                  ),
                   /**
                    * @description             get update account message
                    * @param keyPairSignature  keypair signature from getKeyPairMsg api
@@ -440,7 +366,7 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                    * @param offset         number of records to skip
                    * @param limit          number of records to return
                    */
-                  // 改造 查询单个 todo
+                  // 改造 查询单个
                   this._registerRoute(
                         "post",
                         "/lrc/getNftBalances",
@@ -700,75 +626,6 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                               return errResphonse(
                                     ERR_MSG.NFT_DETAIL.NO,
                                     ERR_MSG.NFT_DETAIL.MSG
-                              );
-                        }
-                  }
-            );
-
-            /**
-             * @description  getNftInfoFromId
-             * @param nftId  nftId for the nftInfo
-             */
-            this._registerRoute(
-                  "post",
-                  "/lrc/getContractNFTMeta",
-                  async (req): Promise<any> => {
-                        let params = req.body;
-                        let nftId = params.nftId;
-
-                        try {
-                              this.logger.info("service getContractNFTMeta");
-                              let response =
-                                    await this.lrcHandler.getContractNFTMeta(
-                                          nftId
-                                    );
-
-                              return okResphonse(response);
-                        } catch (reason) {
-                              this.logger.error(reason);
-                              return errResphonse(
-                                    ERR_MSG.NFT_CONTRACT.NO,
-                                    ERR_MSG.NFT_CONTRACT.MSG
-                              );
-                        }
-                  }
-            );
-
-            //
-            /**
-             * @description  get users token trade list (not nft)
-             * @param nftId  nftId for the nftInfo
-             */
-            this._registerRoute(
-                  "post",
-                  "/lrc/getUserTradesList",
-                  async (req): Promise<any> => {
-                        let params = req.body;
-
-                        let offset = params.hasOwnProperty("offset")
-                              ? params.offset
-                              : 0;
-                        let limit = params.hasOwnProperty("limit")
-                              ? params.limit
-                              : 100;
-
-                        let quiry = {
-                              offset,
-                              limit,
-                              ...params,
-                        };
-                        try {
-                              // 补充方法
-                              let response =
-                                    await this.lrcHandler.getUserTradesList(
-                                          quiry
-                                    );
-                              return okResphonse(response);
-                        } catch (reason) {
-                              this.logger.error(reason);
-                              return errResphonse(
-                                    ERR_MSG.NFT_TRADE.NO,
-                                    ERR_MSG.NFT_TRADE.MSG
                               );
                         }
                   }
