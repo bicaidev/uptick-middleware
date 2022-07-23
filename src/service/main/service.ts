@@ -77,11 +77,6 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
             this.state.lrcConf = this.options.lrcConf;
             this.state.nacosConf = this.options.nacosConf;
             try {
-                  let web3Provider = new Web3.providers.WebsocketProvider(
-                        this.state.lrcConf.infroUrl
-                  );
-                  this.state.web3 = new Web3(web3Provider);
-
                   const provider = new HDWalletProvider(
                         this.state.lrcConf.adminPRIV,
                         this.state.lrcConf.infroUrl
