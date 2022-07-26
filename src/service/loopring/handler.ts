@@ -42,7 +42,7 @@ import axios from "axios";
 // import BigNumber from "bignumber.js";
 // goerli
 const baseRprUrltest = "https://uat2.loopring.io/";
-const baseRprUrl = "https://api3.loopring.io";
+const baseRprUrl = "https://api3.loopring.io/";
 let userExtendApi: UserExtendAPI;
 
 export class LRCHandler {
