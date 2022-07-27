@@ -340,6 +340,6 @@ export let TOKEN_INFO = {
 
 export const LOOPRING_EXPORTED_SETTING = {
       validUntil: Math.round(Date.now() / 1000) + 30 * 86400,
-      nftTokenAddress: "0x8394cB7e768070217592572582228f62CdDE4FCE",
+      nftTokenAddress: "0x2de1fC93eEbF390E960639A0dEA68A963081cbDb",
       tradeLRCValue: 1000000000000000000,
 };
