@@ -30,7 +30,7 @@ import * as sdk from "@loopring-web/loopring-sdk";
 import * as ContractAPI from "@loopring-web/loopring-sdk";
 
 // for test
-const chainId = sdk.ChainId.GOERLI;
+const chainId = sdk.ChainId.MAINNET;
 
 export const LoopringAPI = {
       userAPI: new UserAPI({ chainId }),
