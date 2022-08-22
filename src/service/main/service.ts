@@ -29,6 +29,7 @@ import Web3 from "web3";
 const HDWalletProvider = require("@truffle/hdwallet-provider");
 
 import { NacosNamingClient } from "nacos";
+import {ConnectorNames} from "@loopring-web/loopring-sdk";
 
 interface LrcConf {
       adminAddress: string;
@@ -64,7 +65,6 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
       private state: {
             app: express.Express;
             server: any;
-            web3: any;
             lrcConf: LrcConf;
             nacosConf: nacosConf;
             adminWeb3: any;
@@ -207,15 +207,18 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
                         this.logger.info("Served HTTP Request", {
                               method: req.method,
                               url: req.url,
+                              body: req.body,
+                              res: json,
                               elapsed,
                         });
 
                         return res.json(json);
                   } catch (e) {
                         const elapsed = Date.now() - start;
-                        this.logger.info("Failed HTTP Request", {
+                        this.logger.error("Failed HTTP Request", {
                               method: req.method,
                               url: req.url,
+                              body: req.body,
                               elapsed,
                               msg: e.toString(),
                         });
@@ -230,6 +233,100 @@ export class DataTransportService extends BaseService<DataTransportServiceOption
        * get the deposit raw transaction
        */
       private _registerAllRoutes(): void {
+          this._registerRoute(
+              "post",
+              "/lrc/hello",
+              async (req): Promise<any> => {
+                    return okResphonse("HelloWorld");
+              }
+          ),
+          this._registerRoute(
+              "post",
+              "/lrc/multMintNFT",
+              async (req): Promise<any> => {
+                  let params = req.body;
+                  let owner: string = params.owner;
+                  let nftBaseUri = params.nftBaseUri;
+                  let tokenAddress: string = params.tokenAddress;
+                  let royaltyPercentage: number = params.royaltyPercentage;
+                  let royaltyAddress: string = params.royaltyAddress;
+
+                  let exchangeInfo = await this.lrcHandler.getExchangeInfo();
+                  let exchangeAddress = exchangeInfo.exchangeAddress;
+                  console.log("exchangeAddress: " + exchangeAddress);
+
+                  let account = await this.lrcHandler.getAccountInfo({owner:owner});
+                  let accountId = account.accountId;
+                  console.log("accountId: " + accountId);
+
+                  let apiKey = await this.lrcHandler.getApiKey(accountId, "0x4be781c3697d35b4b6325b7204b5201712ca763e078fd5f60e591faeb3b5d2c")
+                  console.log("apiKey: " + apiKey);
+
+                  let nftOffchainFee = await this.lrcHandler.getNftFee(
+                      {
+                          accountId: accountId,
+                          tokenAddress: tokenAddress,
+                          requestType: 9,
+                      },
+                      apiKey
+                  );
+                  console.log("nftOffchainFee: " + nftOffchainFee.fees["ETH"].fee);
+
+                  let nftIdList = params.nftIdList;
+                  for (let i = 0; i < nftIdList.length; i++) {
+                      let nftId = nftIdList[i].nftId;
+                      let amount = nftIdList[i].amount;
+                      console.log("nftIdList: " + nftId + "," + amount)
+
+                      let storageId = await this.lrcHandler.getNextStorageId(accountId, 0, apiKey)
+                      console.log("storageId: " + storageId.offchainId);
+
+                      let reqs = {
+                          // nftbaseUri 不能变
+                          counterFactualNftInfo: {
+                              nftFactory: "0xAE9826cc753a1B3eb81Ec64Ac1Ff007Ef8f3841C",
+                              nftOwner: owner,
+                              nftBaseUri: "https://realrare.io/#/collection/" + nftBaseUri,
+                          },
+                          exchange: exchangeAddress,
+                          minterId: accountId,
+                          minterAddress: owner,
+                          toAccountId: accountId,
+                          toAddress: owner,
+                          nftType: 0,
+                          tokenAddress: tokenAddress,
+                          nftId: nftId, //nftId.toString(16),
+                          amount: amount,
+                          validUntil: Math.round(Date.now() / 1000) + 30 * 86400,
+                          storageId: storageId.offchainId,
+                          maxFee: {
+                              tokenId: 0,
+                              amount: 217000000000000,
+                              //amount: "6810000000000000000"
+                          },
+                          royaltyPercentage: royaltyPercentage,
+                          royaltyAddress: royaltyAddress,
+                          forceToMint: false, // suggest use as false, for here is just for run test
+                      };
+
+                      console.log(JSON.stringify(reqs));
+
+                      let response = await this.lrcHandler.submitNFTMint(
+                          reqs,
+                          this.state.adminWeb3,
+                          this.state.lrcConf.chainId,
+                          ConnectorNames.WalletConnect,
+                          "0x4be781c3697d35b4b6325b7204b5201712ca763e078fd5f60e591faeb3b5d2c",
+                          apiKey
+                      );
+
+                      console.log("🚀 ~ file: handler.js ~ line 493 ~ LRCHandler ~ response", response)
+                  }
+
+                  return okResphonse("Hello");
+              }
+          ),
+
             /**
              * @description             get key pair message from address
              * @param fromAddress       address to get message

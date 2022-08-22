@@ -20,11 +20,11 @@ import {
       AccountInfo,
       ExchangeInfo,
       SigSuffix,
-      GetUserApiKeyRequest,
+      GetUserApiKeyRequest, ConnectorNames,
 } from "@loopring-web/loopring-sdk";
 
 // 自定义的api todo
-import { getDeposit, UserExtendAPI } from "../../loopringSDK";
+import {getDeposit, NFTMintRequestV3, UserExtendAPI} from "../../loopringSDK";
 
 import { ChainId } from "@loopring-web/loopring-sdk";
 import * as sdk from "@loopring-web/loopring-sdk";
@@ -42,7 +42,7 @@ import axios from "axios";
 // import BigNumber from "bignumber.js";
 // goerli
 const baseRprUrltest = "https://uat2.loopring.io/";
-const baseRprUrl = "https://api3.loopring.io/";
+const baseRprUrl = "https://uat2.loopring.io/";
 let userExtendApi: UserExtendAPI;
 
 export class LRCHandler {
@@ -129,6 +129,62 @@ export class LRCHandler {
                         return null;
                   }
                   return accInfo;
+            } catch (reason) {
+                  throw reason;
+            }
+      }
+
+      public async getApiKey(accountId: number, eddsaKey: string): Promise<string> {
+            try {
+                  const { apiKey } = await LoopringAPI.userAPI.getUserApiKey({
+                        accountId: accountId,
+                  }, eddsaKey);
+
+                  if (!apiKey) {
+                        return null;
+                  }
+                  return apiKey;
+            } catch (reason) {
+                  throw reason;
+            }
+      }
+
+      public async getNextStorageId(accountId: number, sellTokenId: number, apiKey: string): Promise<any> {
+            try {
+                  let storageId = await LoopringAPI.userAPI.getNextStorageId({
+                        accountId: accountId,
+                        sellTokenId: sellTokenId,
+                  }, apiKey);
+
+                  if (!storageId) {
+                        return null;
+                  }
+                  return storageId;
+            } catch (reason) {
+                  throw reason;
+            }
+      }
+
+      public async submitNFTMint(reqs: NFTMintRequestV3,
+                              adminWeb3: any,
+                              chainId: ChainId,
+                              walletType: ConnectorNames,
+                              eddsaKey: string,
+                              apiKey: string): Promise<any> {
+            try {
+                  let response = LoopringAPI.userAPI.submitNFTMint({
+                        request: reqs,
+                        web3: adminWeb3,
+                        chainId: chainId,
+                        walletType: walletType,
+                        eddsaKey: eddsaKey,
+                        apiKey: apiKey,
+                  });
+
+                  if (!response) {
+                        return null;
+                  }
+                  return response;
             } catch (reason) {
                   throw reason;
             }
@@ -1264,7 +1320,7 @@ export class LRCHandler {
        */
       public async getAccountInfo(quiry: any): Promise<any> {
             try {
-                  let url = baseRprUrl + "api/v3/account";
+                  let url = baseRprUrl + "/api/v3/account";
 
                   let res = await axios({
                         method: "get", //you can set what request you want to be
