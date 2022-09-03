@@ -1,0 +1,11 @@
+install modules
+    # yarn install
+run as a deamon
+	# yarn pm2
+
+run as local service on terminal
+	# yarn start
+
+run as a unit test
+	# yarn test
+
